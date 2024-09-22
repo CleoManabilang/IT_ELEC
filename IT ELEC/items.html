@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery List App</title>
+    <link rel="stylesheet" href="items.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        select {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 200px; 
+            box-sizing: border-box;
+        }
+
+        #cart-items {
+            max-height: 300px; /* Set a fixed height for scrolling */
+            overflow-y: auto; 
+            margin-bottom: 20px; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+}
+
+        #cart-container {
+            display: none; 
+            position: fixed; 
+            right: 20px; 
+            top: 60px; 
+            background-color: white; 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            z-index: 1000;
+        }
+        #overlay {
+    display: none; 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0, 0, 0, 0.7); 
+    z-index: 1001; 
+    justify-content: center; 
+    align-items: center; 
+}
+        #form-container {
+    background: white; 
+    padding: 20px; 
+    border-radius: 5px; 
+    width: 300px; 
+    max-height: 80%;
+    overflow-y: auto;
+}
+        button.close-overlay {
+            margin-top: 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <input type="text" id="search_bar" placeholder="Search items...">
+    <select id="sort-options">
+        <option value="default">Sort By</option>
+        <option value="price">Price</option>
+        <option value="name">Name</option>
+        <option value="store">Store</option>
+    </select>
+    <select id="category-filter">
+        <option value="all">All Categories</option>
+        <option value="drinks">Drinks</option>
+        <option value="meat">Meat</option>
+        <option value="vegetables">Vegetables</option>
+        <option value="fruits">Fruits</option>
+        <option value="fish">Fish</option>
+    </select>
+<!-- Drinks, Meat, Vegetables, Fruits, Fish-->
+    <form id="grocery-form">
+        <input type="text" id="product-name" placeholder="Product Name" required>
+        <input type="text" id="brand" placeholder="Brand" required>
+        <input type="number" id="price" placeholder="Price" required>
+        <input type="text" id="weight-volume" placeholder="Weight/Volume" required>
+        <input type="number" id="quantity" placeholder="Quantity" required>
+        <input type="text" id="store" placeholder="Store Name" required>
+        <input type="text" id="category" placeholder="Category" required>
+        <input type="file" id="product-image">
+        <button type="submit">Add / Update Item</button>
+        <button type="button" id="cancel-button" style="display: none;">Cancel</button>
+    </form>
+    <ul id="grocery-list" class="grocery-list"></ul>
+                          <!-- Nav Bottom-->
+    <div id="bottom-nav" style="display: flex; justify-content: space-around; padding: 10px; background-color: #f8f8f8; border-top: 1px solid #ddd;">
+        <button id="home-button" onclick="window.location.href='items.html'" style="border: none; background: transparent; cursor: pointer;">
+            <i class="fas fa-home" style="font-size: 24px;"></i>
+        </button>
+        <a href="user-profile.html" style="border: none; background: transparent; cursor: pointer; text-decoration: none;">
+            <button id="me-button" style="border: none; background: transparent; cursor: pointer;">
+                <i class="fas fa-user" style="font-size: 24px;"></i>
+            </button>
+        </a>
+        <button id="open-overlay" style="border: none; background: transparent; cursor: pointer;">
+            <i class="fas fa-shopping-cart" style="font-size: 24px;"></i>
+            <span id="cart-count" style="font-size: 14px; color: #333;">0</span>
+        </button>
+    </div>
+<!--Showing Items in Cart-->
+    <div id="overlay">
+        <div id="form-container">
+            <h1>My Items</h1>
+            <div id="cart-items"></div> <!-- Container for cart items -->
+            <button id="clear-cart">Clear Cart</button> <!-- Clear cart button -->
+            <button type="button" class="close-overlay">Close</button>
+        </div>
+    </div>
+    
+
+    <script src="items.js"></script>
+
+        
+    <script>
+        //sorting area
+        const groceryList = document.getElementById('grocery-list');
+        const sortOptions = document.getElementById('sort-options');
+        const categoryFilter = document.getElementById('category-filter');
+        const cartCount = document.getElementById('cart-count');
+        let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        window.onload = loadItems;
+             //Saving Items if load
+        function loadItems() {
+            groceryList.innerHTML = '';
+            const items = JSON.parse(localStorage.getItem('groceryItems')) || [];
+            const filteredItems = filterItems(items);
+            const sortedItems = sortItems(filteredItems);
+            sortedItems.forEach(item => displayItem(item));
+        }
+        //all items display
+        function displayItem(item) {
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <h3>${item.productName} (${item.category})</h3>
+                <p>Quantity: ${item.quantity}</p>
+                <p>Brand: ${item.brand}</p>
+                <p>Price: ₱${item.price.toFixed(2)}</p>
+                <p>Total Cost: ₱${(item.price * item.quantity).toFixed(2)}</p>
+                <p>Weight/Volume: ${item.weightVolume || 'N/A'}</p>
+                <p>Store: ${item.store}</p>
+                <img src="${item.image || 'placeholder.png'}" style="width: 100px; height: auto;" />
+                <button class="add-to-cart" data-name="${item.productName}" data-price="${item.price}" data-image="${item.image}">Add to Cart</button>
+            `;
+            groceryList.appendChild(listItem);
+        }
+// category all items showed
+        function filterItems(items) {
+            const category = categoryFilter.value;
+            return items.filter(item => category === 'all' || item.category === category);
+        }
+//sorting
+        function sortItems(items) {
+            const sortBy = sortOptions.value;
+            if (sortBy === 'price') {
+                return items.sort((a, b) => a.price - b.price);
+            } else if (sortBy === 'name') {
+                return items.sort((a, b) => a.productName.localeCompare(b.productName));
+            } else if (sortBy === 'store') {
+                return items.sort((a, b) => a.store.localeCompare(b.store));
+            }
+            return items;
+        }
+          //cart function
+        groceryList.addEventListener('click', function(event) {
+            if (event.target.classList.contains('add-to-cart')) {
+                const name = event.target.getAttribute('data-name');
+                const price = parseFloat(event.target.getAttribute('data-price'));
+                const image = event.target.getAttribute('data-image');
+
+                const existingItem = cartItems.find(item => item.name === name);
+                if (existingItem) {
+                    existingItem.quantity += 1;
+                } else {
+                    cartItems.push({ name, price, quantity: 1, image });
+                }
+                localStorage.setItem('cartItems', JSON.stringify(cartItems));
+                updateCartCount();
+                alert(`${name} has been added to your cart!`);
+            }
+        });
+
+        function updateCartCount() {
+            cartCount.textContent = cartItems.reduce((total, item) => total + item.quantity, 0);
+        }
+//detailsitemoverlay
+        function displayCartItems() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = cartItems.map(item => 
+                `<div>
+                    <img src="${item.image}" style="width: 50px; height: auto;"/> ${item.name} - Quantity: ${item.quantity}
+                </div>`
+            ).join('');
+            document.getElementById('cart-container').style.display = cartItems.length > 0 ? 'block' : 'none';
+        }
+
+        document.getElementById('cart-button').addEventListener('click', function() {
+            displayCartItems();
+            document.getElementById('cart-container').style.display = 'block';
+        });
+
+        document.getElementById('clear-cart').addEventListener('click', function() {
+            cartItems = [];
+            localStorage.setItem('cartItems', JSON.stringify(cartItems));
+            updateCartCount();
+            displayCartItems();
+            alert("Your cart has been cleared.");
+        });
+
+        document.getElementById('close-cart').addEventListener('click', function() {
+            document.getElementById('cart-container').style.display = 'none';
+        });
+
+        document.getElementById('open-overlay').addEventListener('click', function() {
+            document.getElementById('overlay').style.display = 'flex';
+        });
+
+        document.querySelector('.close-overlay').addEventListener('click', function() {
+            document.getElementById('overlay').style.display = 'none';
+        });
+
+        
+
+        sortOptions.addEventListener('change', loadItems);
+        categoryFilter.addEventListener('change', loadItems);
+    </script>
+</body>
+</html>

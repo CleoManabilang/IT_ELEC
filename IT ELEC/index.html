@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Registration Form</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+         
+        <div id="loginForm" class="form">
+            <h2 id="formTitle">Login</h2>
+            <form id="loginFormElement">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" required>
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" required>
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <button id="showRegister">Register</button></p>
+            <div id="loginError" class="error-message" style="display: none;"></div>
+        </div>
+
+        <div id="registrationForm" class="form" style="display: none;">
+            <h2 id="formTitle">Registration</h2>
+            <form id="registrationFormElement">
+                <label for="regName">Name:</label>
+                <input type="text" id="regName" required>
+                <label for="regEmail">Email:</label>
+                <input type="email" id="regEmail" required>
+                <label for="regPassword">Password:</label>
+                <input type="password" id="regPassword" required>
+                <button type="submit">Register</button>
+            </form>
+            <p>Already have an account? <button id="showLogin">Login</button></p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

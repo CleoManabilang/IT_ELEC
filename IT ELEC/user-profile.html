@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #category {
+            width: 250px; /* Adjust width */
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        /* Overlay Styles */
+        #cart-overlay {
+            display: none; /* Initially hidden */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .cart-content {
+            background: white;
+            border-radius: 5px;
+            padding: 20px;
+            max-width: 500px;
+            margin: auto;
+        }
+
+        .close-button {
+            cursor: pointer;
+            float: right;
+            font-size: 20px;
+        }
+
+        .clear-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .clear-button:hover {
+            opacity: 0.8;
+        }
+
+        .checklist-container {
+    margin: 10px 0;
+    padding: 15px; 
+    border: 1px solid #ccc; 
+    border-radius: 5px; 
+    margin-bottom: 30px; 
+}
+
+#checklist {
+    list-style-type: none; /* Remove bullets */
+    padding: 0;
+}
+
+#checklist li {
+
+    display: flex; /*alignment */
+    align-items: center; 
+}
+
+input[type="checkbox"] {
+    margin-right: 15px; 
+    transform: scale(1.2); /*checkbox size */
+}
+
+.details {
+    margin-left: 25px; 
+    font-style: italic; 
+    color: #555; 
+    margin-top: 0%;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .checklist-container {
+        padding: 15px; 
+    }
+
+    #checklist li {
+        flex-direction: column; 
+        align-items: flex-start; 
+        margin-bottom: 10px;
+    }
+
+    .details {
+        margin-left: 0; 
+        margin-top: 10px;
+    }
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="grocery-container">
+        <h1>Grocery List App</h1>
+        
+        <button id="add-item-button">Add Item</button>
+        <button onclick="logout()">Logout</button>
+
+        <form id="grocery-form" style="display: none;">
+            <input type="text" id="product-name" placeholder="Product Name" required>
+            <input type="text" id="brand" placeholder="Brand" required>
+            <input type="number" id="price" placeholder="Price" required>
+            <input type="text" id="weight-volume" placeholder="Weight/Volume" required>
+            <input type="number" id="quantity" placeholder="Quantity" required>
+            <input type="text" id="store" placeholder="Store" required>
+            <input type="file" id="product-image" accept="image/*">
+            
+            <select id="category" required>
+                <option value="" disabled selected>Select Category: </option>
+                <option value="Drinks">Drinks</option>
+                <option value="Meat">Meat</option>
+                <option value="Vegetables">Vegetables</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Fish">Fish</option>
+            </select>
+            
+            <button type="submit">Submit Item</button>
+        </form>
+
+        <!-- Toggle button for checklist -->
+        <button id="toggle-checklist-button" onclick="toggleChecklist()">Show Shopping Checklist</button>
+
+        <!-- Checklist container -->
+        <div id="checklist-container" class="checklist-container" style="display: none;">
+            <h2>Shopping Checklist</h2>
+            <ul id="checklist">
+                <li>
+                    <input type="checkbox" id="drinks" />
+                    <label for="drinks" onclick="toggleDetails('details-drinks')">Drinks</label>
+                    <div id="details-drinks" class="details" style="display: none;">
+                        <p>Water</p>
+                    </div>
+                </li>
+                <li>
+                    <input type="checkbox" id="meat" />
+                    <label for="meat" onclick="toggleDetails('details-meat')">Meat</label>
+                    <div id="details-meat" class="details" style="display: none;">
+                        <p>Beef</p>
+                    </div>
+                </li>
+                <li>
+                    <input type="checkbox" id="vegetables" />
+                    <label for="vegetables" onclick="toggleDetails('details-vegetables')">Vegetables</label>
+                    <div id="details-vegetables" class="details" style="display: none;">
+                        <p>Water</p>
+                    </div>
+                </li>
+                <li>
+                    <input type="checkbox" id="fruits" />
+                    <label for="fruits" onclick="toggleDetails('details-fruits')">Fruits</label>
+                    <div id="details-fruits" class="details" style="display: none;">
+                        <p>Mango</p>
+                    </div>
+                </li>
+                <li>
+                    <input type="checkbox" id="fish" />
+                    <label for="fish" onclick="toggleDetails('details-fish')">Fish</label>
+                    <div id="details-fish" class="details" style="display: none;">
+                        <p>Fish</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <ul id="grocery-list"></ul>
+    </div>
+
+    <div id="bottom-nav" style="display: flex; justify-content: space-around; padding: 10px; background-color: #f8f8f8; border-top: 1px solid #ddd;">
+        <button id="home-button" onclick="window.location.href='items.html'" style="border: none; background: transparent; cursor: pointer;">
+            <i class="fas fa-home" style="font-size: 24px;"></i>
+        </button>
+        <a href="user-profile.html" style="border: none; background: transparent; cursor: pointer; text-decoration: none;">
+            <button id="me-button" style="border: none; background: transparent; cursor: pointer;">
+                <i class="fas fa-user" style="font-size: 24px;"></i>
+            </button>
+        </a>
+        <button id="cart-button" style="border: none; background: transparent; cursor: pointer;">
+            <i class="fas fa-shopping-cart" style="font-size: 24px;"></i>
+        </button>
+    </div>
+
+    <!-- Cart Overlay -->
+    <div id="cart-overlay">
+        <div class="cart-content">
+            <span class="close-button" onclick="closeCart()">✖</span>
+            <h2>Your Cart</h2>
+            <ul id="cart-items-list"></ul>
+            <button class="clear-button" onclick="clearCart()">Clear Cart</button>
+        </div>
+    </div>
+
+    <script src="items.js"></script>
+    <script>
+        function logout() {
+            alert("You have been logged out.");
+            window.location.href = 'index.html';
+        }
+
+        function loadItems() {
+            const groceryList = document.getElementById('grocery-list');
+            groceryList.innerHTML = ''; // Clear existing list
+            const items = JSON.parse(localStorage.getItem('groceryItems')) || [];
+            items.forEach(item => displayItem(item));
+        }
+
+        function displayItem(item) {
+            const groceryList = document.getElementById('grocery-list');
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <h3>${item.productName} (${item.category})</h3>
+                <p>Brand: ${item.brand}</p>
+                <p>Price: ₱${item.price.toFixed(2)} per item</p>
+                <p>Quantity: ${item.quantity}</p>
+                <p>Total Cost: ₱${(item.price * item.quantity).toFixed(2)}</p>
+                <p>Weight/Volume: ${item.weightVolume || 'N/A'}</p>
+                <p>Store: ${item.store}</p>
+                ${item.image ? `<img src="${item.image}" alt="${item.productName}" style="width: 100px; height: 100px; border-radius: 40%;">` : ''}
+            `;
+            groceryList.appendChild(listItem);
+        }
+
+        document.getElementById('add-item-button').onclick = function() {
+            const form = document.getElementById('grocery-form');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        };
+
+        document.getElementById('grocery-form').onsubmit = function(event) {
+            event.preventDefault();
+
+            const newItem = {
+                productName: document.getElementById('product-name').value,
+                brand: document.getElementById('brand').value,
+                price: parseFloat(document.getElementById('price').value),
+                weightVolume: document.getElementById('weight-volume').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                store: document.getElementById('store').value,
+                category: document.getElementById('category').value,
+                image: document.getElementById('product-image').files[0] 
+                    ? URL.createObjectURL(document.getElementById('product-image').files[0]) 
+                    : ''
+            };
+
+            addItem(newItem);
+            loadItems(); // Reload items after adding
+            this.reset(); // Reset the form
+            this.style.display = 'none'; // Hide the form
+        };
+
+        function addItem(item) {
+            const items = JSON.parse(localStorage.getItem('groceryItems')) || [];
+            items.push(item);
+            localStorage.setItem('groceryItems', JSON.stringify(items));
+        }
+
+        function addToCart(productName) {
+            let cart = JSON.parse(localStorage.getItem('cartItems')) || [];
+            const groceryItems = JSON.parse(localStorage.getItem('groceryItems')) || [];
+            const item = groceryItems.find(item => item.productName === productName);
+
+            if (item) {
+                cart.push(item);
+                localStorage.setItem('cartItems', JSON.stringify(cart));
+                alert(`${productName} added to cart!`);
+            }
+        }
+
+        function showCart() {
+            const cartOverlay = document.getElementById('cart-overlay');
+            const cartItemsList = document.getElementById('cart-items-list');
+            cartItemsList.innerHTML = ''; // Clear existing items
+            const items = JSON.parse(localStorage.getItem('cartItems')) || [];
+
+            items.forEach(item => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `${item.productName} (${item.quantity}) - ₱${(item.price * item.quantity).toFixed(2)}`;
+                cartItemsList.appendChild(listItem);
+            });
+
+            cartOverlay.style.display = 'block'; // Show overlay
+        }
+
+        function closeCart() {
+            document.getElementById('cart-overlay').style.display = 'none'; // Hide overlay
+        }
+
+        function clearCart() {
+            localStorage.removeItem('cartItems'); // Clear all items in the cart
+            closeCart(); // Close the overlay
+        }
+
+        function toggleChecklist() {
+            const checklistContainer = document.getElementById('checklist-container');
+            const button = document.getElementById('toggle-checklist-button');
+            checklistContainer.style.display = checklistContainer.style.display === 'none' ? 'block' : 'none';
+            button.textContent = checklistContainer.style.display === 'none' ? 'Show Shopping Checklist' : 'Hide Shopping Checklist';
+        }
+
+        function toggleDetails(detailId) {
+            const details = document.getElementById(detailId);
+            details.style.display = details.style.display === 'none' ? 'block' : 'none';
+        }
+
+        document.getElementById('cart-button').onclick = showCart; // Set click handler for cart button
+
+        loadItems(); // Load items on profile page load
+    </script>
+</body>
+</html>
